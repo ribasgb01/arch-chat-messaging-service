@@ -4,11 +4,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record FriendshipRequest(
-
+public record BlockUserRequest(
         @NotNull(message = "Campo não informado")
-        UUID requesterId,
-
+        UUID blockerId,
         @NotNull(message = "Campo não informado")
-        UUID receiverId
+        UUID blockedId
 ) {}

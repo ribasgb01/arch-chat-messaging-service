@@ -27,6 +27,12 @@ public class FriendshipRepositoryGatewayImpl implements FriendshipRepositoryGate
     }
 
     @Override
+    public Optional<Friendship> findById(UUID id) {
+        return repository.findById(id)
+                .map(entity -> mapper.toDomain(entity));
+    }
+
+    @Override
     public Optional<Friendship> findRelationBetween(UUID user1, UUID user2) {
         return repository.findRelationBetween(user1, user2)
                 .map(entity -> mapper.toDomain(entity));

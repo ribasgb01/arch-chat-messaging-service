@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface DataFriendshipRepository extends JpaRepository<FriendshipEntity, UUID> {
 
-    @Query("SELECT f FROM FriendshipEntity WHERE " +
+    @Query("SELECT f FROM FriendshipEntity f WHERE " +
     "(f.requesterId = :user1 AND f.receiverId = :user2) OR" +
     "(f.requesterId = :user2 AND f.receiverId = :user1)")
     Optional<FriendshipEntity> findRelationBetween(

@@ -4,11 +4,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record FriendshipRequest(
-
-        @NotNull(message = "Campo não informado")
-        UUID requesterId,
-
-        @NotNull(message = "Campo não informado")
+public record AcceptFriendRequestDto(
+        @NotNull(message = "Campo vazio")
         UUID receiverId
 ) {}

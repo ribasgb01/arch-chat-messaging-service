@@ -1,7 +1,7 @@
 package com.microservice.archchatmessagingservice.infrastructure.config;
 
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
-import com.microservice.archchatmessagingservice.application.usecases.SendFriendRequestUseCase;
+import com.microservice.archchatmessagingservice.application.usecases.FriendshipUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class FriendshipConfig {
 
     @Bean
-    public SendFriendRequestUseCase sendFriendRequestUseCase(FriendshipRepositoryGateway friendshipRepositoryGateway){
-        return new SendFriendRequestUseCase(friendshipRepositoryGateway);
+    public FriendshipUseCase sendFriendRequestUseCase(FriendshipRepositoryGateway friendshipRepositoryGateway){
+        return new FriendshipUseCase(friendshipRepositoryGateway);
     }
 }

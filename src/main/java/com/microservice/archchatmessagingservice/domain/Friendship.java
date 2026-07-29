@@ -20,5 +20,6 @@ public class Friendship {
     private UUID requesterId;
     private UUID receiverId;
     private FriendshipStatus status;
-    private UUID blockedBy;
+    private boolean isBlockedByRequester;
+    private boolean isBlockedByReceiver;
 }
