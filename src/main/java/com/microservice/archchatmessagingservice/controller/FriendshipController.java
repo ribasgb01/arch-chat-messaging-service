@@ -1,15 +1,9 @@
 package com.microservice.archchatmessagingservice.controller;
 
 import com.microservice.archchatmessagingservice.application.usecases.FriendshipUseCase;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.AcceptFriendRequestInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.BlockUserInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.DeclineFriendRequestInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendFriendRequestInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.request.*;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.FriendshipResponse;
-import com.microservice.archchatmessagingservice.controller.dto.request.AcceptFriendRequestDto;
-import com.microservice.archchatmessagingservice.controller.dto.request.BlockUserRequest;
-import com.microservice.archchatmessagingservice.controller.dto.request.DeclineFriendRequestDto;
-import com.microservice.archchatmessagingservice.controller.dto.request.FriendshipRequest;
+import com.microservice.archchatmessagingservice.controller.dto.request.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -108,6 +103,34 @@ public class FriendshipController {
         );
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/unblock")
+    public ResponseEntity<FriendshipResponse> unblockUser(@RequestBody @Valid UnblockUserRequest request){
+
+        UnblockUserInput input = new UnblockUserInput(
+                request.unblockerId(),
+                request.blockedId()
+        );
+
+        Friendship domain = friendshipUsecase.unblockUser(input);
+
+        FriendshipResponse response = new FriendshipResponse(
+                domain.getId(),
+                domain.getRequesterId(),
+                domain.getReceiverId(),
+                domain.getStatus(),
+                domain.getCreatedAt()
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    @GetMapping
+    public ResponseEntity<List<UUID>> getAcceptedFriendships(@RequestParam UUID userId) {
+        List<UUID> friends = friendshipUsecase.getAcceptedFriendships(userId);
+        return ResponseEntity.ok(friends);
     }
 
 }

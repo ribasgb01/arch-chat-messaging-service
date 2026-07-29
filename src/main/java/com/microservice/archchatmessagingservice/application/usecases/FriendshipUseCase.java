@@ -1,15 +1,13 @@
 package com.microservice.archchatmessagingservice.application.usecases;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.microservice.archchatmessagingservice.application.exceptions.*;
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.AcceptFriendRequestInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.BlockUserInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.DeclineFriendRequestInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendFriendRequestInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.request.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;
 import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
 
@@ -53,10 +51,10 @@ public class FriendshipUseCase {
 
             if (relation.getStatus() == FriendshipStatus.BLOCKED) {
                 if (blockedByUser) {
-                    throw new UserBlockedException("Você bloqueou este usuário. Desbloqueie-o primeiro.");
+                    throw new UserBlockedException("Você bloqueou este usuário. Desbloqueie-o primeiro");
                 }
                 if (blockedByFriend) {
-                    throw new UserBlockedException("Não foi possível enviar a solicitação de amizade.");
+                    throw new UserBlockedException("Não foi possível enviar a solicitação de amizade");
                 }
             }
 
@@ -147,6 +145,43 @@ public class FriendshipUseCase {
                 .createdAt(LocalDateTime.now())
                 .build());
 
+    }
+
+    public Friendship unblockUser(UnblockUserInput input){
+
+        Friendship relation = friendshipRepositoryGateway.findRelationBetween(input.unblockerId(), input.blockedId())
+                .orElseThrow(() -> new FriendshipNotFoundException("Nenhum relacionamento encontrado para realizar o desbloqueio"));
+
+        if(relation.getStatus() != FriendshipStatus.BLOCKED){
+            throw new InvalidFriendshipStateException("Este relacionamento não está bloqueado");
+        }
+
+        if(input.unblockerId().equals(relation.getRequesterId())){
+            if(!relation.isBlockedByRequester()){
+                throw new NotAuthorizedToUnblockException("Você não bloqueou este usuário");
+            }
+            relation.setBlockedByRequester(false);
+        } else {
+            if(!relation.isBlockedByReceiver()){
+                throw new NotAuthorizedToUnblockException("Você não bloqueou este usuário");
+            }
+            relation.setBlockedByReceiver(false);
+        }
+
+        if (!relation.isBlockedByRequester() && !relation.isBlockedByReceiver()) {
+            relation.setStatus(FriendshipStatus.DECLINED);
+        }
+
+        return friendshipRepositoryGateway.save(relation);
+    }
+
+    public List<UUID> getAcceptedFriendships(UUID userId){
+
+        var friendships = friendshipRepositoryGateway.findAcceptedFriendshipsByUserId(userId);
+
+        return friendships.stream()
+                .map(f -> f.getRequesterId().equals(userId) ? f.getReceiverId() : f.getRequesterId())
+                .toList();
     }
 
 }

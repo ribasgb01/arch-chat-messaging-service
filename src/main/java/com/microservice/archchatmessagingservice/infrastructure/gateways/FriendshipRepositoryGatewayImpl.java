@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,5 +37,13 @@ public class FriendshipRepositoryGatewayImpl implements FriendshipRepositoryGate
     public Optional<Friendship> findRelationBetween(UUID user1, UUID user2) {
         return repository.findRelationBetween(user1, user2)
                 .map(entity -> mapper.toDomain(entity));
+    }
+
+    @Override
+    public List<Friendship> findAcceptedFriendshipsByUserId(UUID userId) {
+        return repository.findAcceptedFriendshipsByUserId(userId)
+                .stream()
+                .map(entity -> mapper.toDomain(entity))
+                .toList();
     }
 }
