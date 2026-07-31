@@ -11,5 +11,5 @@ public interface ChatRepositoryGateway {
     Optional<Chat> findById(UUID id);
     Optional<Chat> findDirectChatBetween(UUID user1, UUID user2);
     List<Chat> findChatsByUserId(UUID userId);
-    void deleteChat(String chatId);
+    void deleteChat(UUID chatId);
 }

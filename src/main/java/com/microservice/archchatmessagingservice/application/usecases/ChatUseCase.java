@@ -1,0 +1,122 @@
+package com.microservice.archchatmessagingservice.application.usecases;
+
+import com.microservice.archchatmessagingservice.application.exceptions.ChatNotFoundException;
+import com.microservice.archchatmessagingservice.application.exceptions.FriendshipNotFoundException;
+import com.microservice.archchatmessagingservice.application.exceptions.UnauthorizedActionException;
+import com.microservice.archchatmessagingservice.application.gateways.ChatRepositoryGateway;
+import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
+import com.microservice.archchatmessagingservice.application.gateways.MessageRepositoryGateway;
+import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendMessageInput;
+import com.microservice.archchatmessagingservice.domain.Chat;
+import com.microservice.archchatmessagingservice.domain.Friendship;
+import com.microservice.archchatmessagingservice.domain.LastMessage;
+import com.microservice.archchatmessagingservice.domain.Message;
+import com.microservice.archchatmessagingservice.domain.enums.ChatType;
+import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
+import com.microservice.archchatmessagingservice.domain.enums.MessageStatus;
+import com.microservice.archchatmessagingservice.domain.enums.MessageType;
+import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@RequiredArgsConstructor
+public class ChatUseCase {
+
+    private final ChatRepositoryGateway chatRepository;
+    private final FriendshipRepositoryGateway friendshipRepository;
+    private final MessageRepositoryGateway messageRepository;
+
+    public Chat createChat(UUID user1, UUID user2){
+
+        Friendship friendshipRelation = friendshipRepository.findRelationBetween(user1, user2)
+                .filter(friendship -> friendship.getStatus() == FriendshipStatus.ACCEPTED)
+                .orElseThrow(() -> new FriendshipNotFoundException("Amizade não estabelecida para iniciar uma conversa"));
+
+        Optional<Chat> existingChat = chatRepository.findDirectChatBetween(user1, user2);
+
+        if(existingChat.isPresent()){
+            return existingChat.get();
+        }
+
+        Chat newChat = new Chat(
+                UUID.randomUUID(),
+                LocalDateTime.now(),
+                List.of(user1, user2),
+                ChatType.DIRECT,
+                null
+        );
+
+        return chatRepository.save(newChat);
+    }
+
+    public Message sendMessage(SendMessageInput input){
+
+        Chat chat = chatRepository.findById(input.chatId())
+                .orElseThrow(() -> new ChatNotFoundException("Sala de chat não foi encontrada"));
+
+        if(!chat.getParticipantIds().contains(input.senderId())){
+            throw new UnauthorizedActionException("Usuário não tem permissão para enviar mensagens nesta conversa");
+        }
+
+        Message message = Message.builder()
+                .id(UUID.randomUUID())
+                .chatId(input.chatId())
+                .senderId(input.senderId())
+                .content(input.content())
+                .timestamp(LocalDateTime.now())
+                .status(MessageStatus.SENT)
+                .type(input.type())
+                .attachment(input.attachment())
+                .isEdited(false)
+                .build();
+
+        Message savedMessage = messageRepository.save(message);
+
+        LastMessage lastMessage = LastMessage.builder()
+                .messageId(savedMessage.getId())
+                .senderId(savedMessage.getSenderId())
+                .content(savedMessage.getContent())
+                .timestamp(savedMessage.getTimestamp())
+                .status(savedMessage.getStatus())
+                .build();
+
+        chat.setLastMessage(lastMessage);
+        chatRepository.save(chat);
+
+        return savedMessage;
+    }
+
+    List<Message> getChatHistory(UUID chatId, UUID userId){
+
+        Chat chat = chatRepository.findById(userId)
+                .orElseThrow(() -> new ChatNotFoundException("Sala de chat não encontrada"));
+
+        if(!chat.getParticipantIds().contains(userId)){
+            throw new UnauthorizedActionException("Usuário não tem permissão para visualizar o histórico de conversa");
+        }
+
+        return messageRepository.findMessagesByChatId(chatId);
+    }
+
+    public List<Chat> getChatsByUserId(UUID userId){
+
+        List<Chat> userChats = chatRepository.findChatsByUserId(userId);
+
+        return userChats.stream()
+                .sorted((chat1, chat2) -> {
+                    if(chat1.getLastMessage() == null){
+                        return 1;
+                    }
+
+                    if(chat2.getLastMessage() == null){
+                        return -1;
+                    }
+
+                    return chat2.getLastMessage().getTimestamp().compareTo(chat1.getLastMessage().getTimestamp());
+                })
+                .toList();
+    }
+}

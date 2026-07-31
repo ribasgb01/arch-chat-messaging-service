@@ -91,7 +91,7 @@ public class FriendshipUseCase {
         }
 
         if(!input.receiverId().equals(friendship.getReceiverId())){
-            throw new NotAuthorizedToAcceptException("Você não tem permissão para recusar essa solicitação");
+            throw new UnauthorizedActionException("Você não tem permissão para recusar essa solicitação");
         }
 
         friendship.setStatus(FriendshipStatus.DECLINED);
@@ -108,7 +108,7 @@ public class FriendshipUseCase {
         }
 
         if(!input.receiverId().equals(friendship.getReceiverId())){
-            throw new NotAuthorizedToAcceptException("Você não tem permissão para aceitar essa solicitação");
+            throw new UnauthorizedActionException("Você não tem permissão para aceitar essa solicitação");
         }
 
         friendship.setStatus(FriendshipStatus.ACCEPTED);
@@ -158,12 +158,12 @@ public class FriendshipUseCase {
 
         if(input.unblockerId().equals(relation.getRequesterId())){
             if(!relation.isBlockedByRequester()){
-                throw new NotAuthorizedToUnblockException("Você não bloqueou este usuário");
+                throw new UnauthorizedActionException("Você não bloqueou este usuário");
             }
             relation.setBlockedByRequester(false);
         } else {
             if(!relation.isBlockedByReceiver()){
-                throw new NotAuthorizedToUnblockException("Você não bloqueou este usuário");
+                throw new UnauthorizedActionException("Você não bloqueou este usuário");
             }
             relation.setBlockedByReceiver(false);
         }

@@ -1,6 +1,7 @@
 package com.microservice.archchatmessagingservice.domain;
 
 import com.microservice.archchatmessagingservice.domain.enums.MessageStatus;
+import com.microservice.archchatmessagingservice.domain.enums.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +22,6 @@ public class Message {
     LocalDateTime timestamp;
     boolean isEdited;
     Attachment attachment;
+    MessageType type;
     MessageStatus status;
 }
