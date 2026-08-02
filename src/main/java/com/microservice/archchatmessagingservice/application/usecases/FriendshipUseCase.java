@@ -74,8 +74,8 @@ public class FriendshipUseCase {
                 .requesterId(requester)
                 .receiverId(receiver)
                 .status(FriendshipStatus.PENDING)
-                .isBlockedByRequester(false)
-                .isBlockedByReceiver(false)
+                .blockedByRequester(false)
+                .blockedByReceiver(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -140,8 +140,8 @@ public class FriendshipUseCase {
                 .requesterId(input.blockerId())
                 .receiverId(input.blockedId())
                 .status(FriendshipStatus.BLOCKED)
-                .isBlockedByRequester(true)
-                .isBlockedByRequester(false)
+                .blockedByRequester(true)
+                .blockedByReceiver(false)
                 .createdAt(LocalDateTime.now())
                 .build());
 

@@ -119,4 +119,16 @@ public class ChatUseCase {
                 })
                 .toList();
     }
+
+    public void deleteChat(UUID userId, UUID chatId){
+
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ChatNotFoundException("Sala de chat não encontrada"));
+
+        if (!chat.getParticipantIds().contains(userId)){
+            throw new UnauthorizedActionException("Somente os usuários que pertencem ao chat podem deletar");
+        }
+
+        chatRepository.deleteChat(chatId);
+    }
 }

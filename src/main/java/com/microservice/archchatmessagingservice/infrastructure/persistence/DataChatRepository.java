@@ -12,6 +12,5 @@ public interface DataChatRepository extends MongoRepository<ChatDocument, UUID> 
 
     @Query("{ 'type': 'DIRECT', 'participantIds' : { '$all': [?0, ?1] } }")
     Optional<ChatDocument> findDirectChatBetween(UUID user1, UUID user2);
-
     List<ChatDocument> findAllByParticipantIdsContaining(UUID userId);
 }

@@ -24,8 +24,9 @@ public class FriendshipEntity {
     private LocalDateTime createdAt;
     private UUID requesterId;
     private UUID receiverId;
+    @Enumerated(EnumType.STRING)
     private FriendshipStatus status;
-    private boolean isBlockedByReceiver;
-    private boolean isBlockedByRequester;
+    private boolean blockedByReceiver;
+    private boolean blockedByRequester;
 
 }
