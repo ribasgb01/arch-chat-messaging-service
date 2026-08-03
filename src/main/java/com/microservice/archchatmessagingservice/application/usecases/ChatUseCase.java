@@ -40,7 +40,6 @@ public class ChatUseCase {
         if(existingChat.isPresent()){
             return existingChat.get();
         }
-
         Chat newChat = new Chat(
                 UUID.randomUUID(),
                 LocalDateTime.now(),
@@ -50,55 +49,6 @@ public class ChatUseCase {
         );
 
         return chatRepository.save(newChat);
-    }
-
-    public Message sendMessage(SendMessageInput input){
-
-        Chat chat = chatRepository.findById(input.chatId())
-                .orElseThrow(() -> new ChatNotFoundException("Sala de chat não foi encontrada"));
-
-        if(!chat.getParticipantIds().contains(input.senderId())){
-            throw new UnauthorizedActionException("Usuário não tem permissão para enviar mensagens nesta conversa");
-        }
-
-        Message message = Message.builder()
-                .id(UUID.randomUUID())
-                .chatId(input.chatId())
-                .senderId(input.senderId())
-                .content(input.content())
-                .timestamp(LocalDateTime.now())
-                .status(MessageStatus.SENT)
-                .type(input.type())
-                .attachment(input.attachment())
-                .isEdited(false)
-                .build();
-
-        Message savedMessage = messageRepository.save(message);
-
-        LastMessage lastMessage = LastMessage.builder()
-                .messageId(savedMessage.getId())
-                .senderId(savedMessage.getSenderId())
-                .content(savedMessage.getContent())
-                .timestamp(savedMessage.getTimestamp())
-                .status(savedMessage.getStatus())
-                .build();
-
-        chat.setLastMessage(lastMessage);
-        chatRepository.save(chat);
-
-        return savedMessage;
-    }
-
-    List<Message> getChatHistory(UUID chatId, UUID userId){
-
-        Chat chat = chatRepository.findById(userId)
-                .orElseThrow(() -> new ChatNotFoundException("Sala de chat não encontrada"));
-
-        if(!chat.getParticipantIds().contains(userId)){
-            throw new UnauthorizedActionException("Usuário não tem permissão para visualizar o histórico de conversa");
-        }
-
-        return messageRepository.findMessagesByChatId(chatId);
     }
 
     public List<Chat> getChatsByUserId(UUID userId){

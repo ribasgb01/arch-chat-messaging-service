@@ -8,8 +8,5 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FriendshipConfig {
 
-    @Bean
-    public FriendshipUseCase sendFriendRequestUseCase(FriendshipRepositoryGateway friendshipRepositoryGateway){
-        return new FriendshipUseCase(friendshipRepositoryGateway);
-    }
+
 }
