@@ -1,11 +1,13 @@
 package com.microservice.archchatmessagingservice.application.gateways;
 
 import com.microservice.archchatmessagingservice.domain.Attachment;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.util.UUID;
 
 public interface FileStorageGateway {
 
-    Attachment uploadFile(MultipartFile file, String fileName, String contentType, Double duration);
+    Attachment uploadFile(InputStream inputStream, long fileSize, String fileName, String contentType, UUID chatId, Double duration);
     void deleteFile(String fileKey);
-    String getPreSignedUrl(String fileKey);
+    String getPresignedUrl(String fileKey);
 }

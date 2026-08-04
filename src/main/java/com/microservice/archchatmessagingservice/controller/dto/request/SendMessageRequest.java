@@ -14,7 +14,5 @@ public record SendMessageRequest(
         String content,
 
         @NotNull
-        MessageType type,
-
-        Attachment attachment
+        MessageType type
 ) {}

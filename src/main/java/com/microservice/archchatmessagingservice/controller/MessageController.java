@@ -9,7 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,13 +24,33 @@ public class MessageController {
     private final MessageUseCase messageUseCase;
 
     @PostMapping
-    public ResponseEntity<MessageResponse> sendMessage(@PathVariable UUID chatId, @Valid @RequestBody SendMessageRequest request){
+    public ResponseEntity<MessageResponse> sendMessage(
+            @PathVariable UUID chatId,
+            @Valid @RequestPart("message") SendMessageRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+
+        InputStream fileStream = null;
+        Long fileSize = null;
+        String fileName = null;
+        String contentType = null;
+
+        if (file != null || !file.isEmpty()){
+            fileStream = file.getInputStream();
+            fileSize = file.getSize();
+            fileName = file.getOriginalFilename();
+            contentType = file.getContentType();
+        }
+
         SendMessageInput input = new SendMessageInput(
                 chatId,
                 request.senderId(),
                 request.content(),
                 request.type(),
-                request.attachment()
+                fileStream,
+                fileSize,
+                fileName,
+                contentType
         );
 
         Message savedMessage = messageUseCase.saveMessage(input);

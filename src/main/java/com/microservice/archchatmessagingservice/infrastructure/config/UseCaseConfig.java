@@ -1,5 +1,6 @@
 package com.microservice.archchatmessagingservice.infrastructure.config;
 
+import com.microservice.archchatmessagingservice.application.gateways.FileStorageGateway;
 import com.microservice.archchatmessagingservice.application.usecases.FriendshipUseCase;
 import com.microservice.archchatmessagingservice.application.usecases.MessageUseCase;
 import org.springframework.context.annotation.Bean;
@@ -29,9 +30,10 @@ public class UseCaseConfig {
     @Bean
     public MessageUseCase messageUseCase(
             ChatRepositoryGateway chatRepositoryGateway,
-            MessageRepositoryGateway messageRepositoryGateway
+            MessageRepositoryGateway messageRepositoryGateway,
+            FileStorageGateway fileStorageGateway
     ) {
-        return new MessageUseCase(chatRepositoryGateway, messageRepositoryGateway);
+        return new MessageUseCase(chatRepositoryGateway, messageRepositoryGateway, fileStorageGateway);
     }
 
 }

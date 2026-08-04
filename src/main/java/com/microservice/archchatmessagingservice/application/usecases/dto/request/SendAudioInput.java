@@ -1,18 +1,15 @@
 package com.microservice.archchatmessagingservice.application.usecases.dto.request;
 
-import com.microservice.archchatmessagingservice.domain.Attachment;
-import com.microservice.archchatmessagingservice.domain.enums.MessageType;
-
 import java.io.InputStream;
 import java.util.UUID;
 
-public record SendMessageInput(
+public record SendAudioInput(
         UUID chatId,
         UUID senderId,
-        String content,
-        MessageType type,
         InputStream fileStream,
         Long fileSize,
         String fileName,
-        String contentType
-) {}
+        String contentType,
+        Double duration
+) {
+}
