@@ -4,6 +4,7 @@ import com.microservice.archchatmessagingservice.application.exceptions.ChatNotF
 import com.microservice.archchatmessagingservice.application.exceptions.FriendshipNotFoundException;
 import com.microservice.archchatmessagingservice.application.exceptions.UnauthorizedActionException;
 import com.microservice.archchatmessagingservice.application.gateways.ChatRepositoryGateway;
+import com.microservice.archchatmessagingservice.application.gateways.FileStorageGateway;
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
 import com.microservice.archchatmessagingservice.application.gateways.MessageRepositoryGateway;
 import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendMessageInput;
@@ -28,6 +29,8 @@ public class ChatUseCase {
     private final ChatRepositoryGateway chatRepository;
     private final FriendshipRepositoryGateway friendshipRepository;
     private final MessageRepositoryGateway messageRepository;
+    private final FileStorageGateway fileStorage;
+
 
     public Chat createChat(UUID user1, UUID user2){
 
@@ -77,6 +80,14 @@ public class ChatUseCase {
 
         if (!chat.getParticipantIds().contains(userId)){
             throw new UnauthorizedActionException("Somente os usuários que pertencem ao chat podem deletar");
+        }
+
+        List<Message> messages = messageRepository.findMessagesByChatId(chatId);
+
+        for (Message msg : messages) {
+            if (msg.getAttachment() != null) {
+                fileStorage.deleteFile(msg.getAttachment().getKey());
+            }
         }
 
         chatRepository.deleteChat(chatId);

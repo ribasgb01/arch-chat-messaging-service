@@ -4,16 +4,21 @@ import com.microservice.archchatmessagingservice.application.gateways.FileStorag
 import com.microservice.archchatmessagingservice.domain.Attachment;
 import io.minio.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+@Component
 @RequiredArgsConstructor
 public class MinioFileStorageAdapter implements FileStorageGateway {
 
     private final MinioClient minioClient;
-    private final String bucketName;
+
+    @Value("${minio.bucket-name}")
+    private String bucketName;
 
     @Override
     public Attachment uploadFile(InputStream inputStream, long fileSize, String fileName, String contentType, UUID chatId, Double duration) {
@@ -73,4 +78,5 @@ public class MinioFileStorageAdapter implements FileStorageGateway {
             throw new RuntimeException("Erro ao gerar URL pré-assinada: " + e.getMessage());
         }
     }
+
 }

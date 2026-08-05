@@ -18,8 +18,9 @@ public class UseCaseConfig {
     public ChatUseCase chatUseCase(
         ChatRepositoryGateway chatRepositoryGateway,
         FriendshipRepositoryGateway friendshipRepositoryGateway,
-        MessageRepositoryGateway messageRepositoryGateway) {
-            return new ChatUseCase(chatRepositoryGateway, friendshipRepositoryGateway, messageRepositoryGateway);
+        MessageRepositoryGateway messageRepositoryGateway,
+        FileStorageGateway fileStorageGateway) {
+            return new ChatUseCase(chatRepositoryGateway, friendshipRepositoryGateway, messageRepositoryGateway, fileStorageGateway);
         }
 
     @Bean

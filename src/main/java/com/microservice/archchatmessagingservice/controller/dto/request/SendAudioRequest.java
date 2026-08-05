@@ -4,9 +4,11 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record CreateChatRequest (
+public record SendAudioRequest(
         @NotNull
-        UUID user1,
+        UUID senderId,
+
         @NotNull
-        UUID user2
-) {}
+        Double duration
+) {
+}
