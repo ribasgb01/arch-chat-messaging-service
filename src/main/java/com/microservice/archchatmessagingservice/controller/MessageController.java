@@ -39,7 +39,7 @@ public class MessageController {
         String fileName = null;
         String contentType = null;
 
-        if (file != null || !file.isEmpty()){
+        if (file != null && !file.isEmpty()){
             fileStream = file.getInputStream();
             fileSize = file.getSize();
             fileName = file.getOriginalFilename();

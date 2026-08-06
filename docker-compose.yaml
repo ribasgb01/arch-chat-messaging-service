@@ -1,7 +1,7 @@
 services:
   postgres_db:
     image: postgres:16.4-alpine
-    container_name: postgres_db
+    container_name: chat-postgres_db
     restart: always
     environment:
       POSTGRES_USER: 'postgres'
@@ -12,14 +12,14 @@ services:
 
   mongo_db:
     image: mongo:latest
-    container_name: mongo_db
+    container_name: chat-mongo_db
     restart: always
     ports:
       - '27017:27017'
 
   minio:
     image: minio/minio:latest
-    container_name: minio
+    container_name: chat-minio
     restart: always
     ports:
       - "9000:9000"
@@ -28,3 +28,13 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data --console-address ":9001"
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: chat-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "61613:61613"
+    command: >
+      sh -c "rabbitmq-plugins enable --offline rabbitmq_stomp && rabbitmq-server"

@@ -6,6 +6,7 @@ import com.microservice.archchatmessagingservice.application.exceptions.MessageN
 import com.microservice.archchatmessagingservice.application.exceptions.UnauthorizedActionException;
 import com.microservice.archchatmessagingservice.application.gateways.ChatRepositoryGateway;
 import com.microservice.archchatmessagingservice.application.gateways.FileStorageGateway;
+import com.microservice.archchatmessagingservice.application.gateways.MessagePublisherGateway;
 import com.microservice.archchatmessagingservice.application.gateways.MessageRepositoryGateway;
 import com.microservice.archchatmessagingservice.application.usecases.dto.request.DeleteMessageInput;
 import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendAudioInput;
@@ -28,6 +29,7 @@ public class MessageUseCase {
     private final ChatRepositoryGateway chatRepository;
     private final MessageRepositoryGateway messageRepository;
     private final FileStorageGateway fileStorage;
+    private final MessagePublisherGateway publisherGateway;
 
     public Message saveMessage(SendMessageInput input){
 
@@ -76,6 +78,7 @@ public class MessageUseCase {
                 .build();
 
         Message savedMessage = messageRepository.save(message);
+        publisherGateway.publishMessage(savedMessage);
 
         LastMessage lastMessage = LastMessage.builder()
                 .messageId(savedMessage.getId())
@@ -134,6 +137,7 @@ public class MessageUseCase {
                 .build();
 
         Message savedMessage = messageRepository.save(message);
+        publisherGateway.publishMessage(savedMessage);
 
         LastMessage lastMessage = LastMessage.builder()
                 .messageId(savedMessage.getId())
