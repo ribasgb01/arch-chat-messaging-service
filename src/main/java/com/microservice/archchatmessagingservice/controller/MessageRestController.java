@@ -1,9 +1,9 @@
 package com.microservice.archchatmessagingservice.controller;
 
 import com.microservice.archchatmessagingservice.application.usecases.MessageUseCase;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.DeleteMessageInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendAudioInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendMessageInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.DeleteMessageInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.SendAudioInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.SendMessageInput;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.MessageResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendAudioRequest;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendMessageRequest;
