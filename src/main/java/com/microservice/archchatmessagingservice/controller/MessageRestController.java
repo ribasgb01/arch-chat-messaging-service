@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/chats/{chatId}/messages")
-public class MessageController {
+public class MessageRestController {
 
     private final MessageUseCase messageUseCase;
 

@@ -1,4 +1,4 @@
-package com.microservice.archchatmessagingservice.application.usecases.dto.request;
+package com.microservice.archchatmessagingservice.application.usecases.dto;
 
 import java.util.UUID;
 

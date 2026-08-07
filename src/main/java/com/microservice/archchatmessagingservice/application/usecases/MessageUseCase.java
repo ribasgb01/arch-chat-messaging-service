@@ -8,9 +8,10 @@ import com.microservice.archchatmessagingservice.application.gateways.ChatReposi
 import com.microservice.archchatmessagingservice.application.gateways.FileStorageGateway;
 import com.microservice.archchatmessagingservice.application.gateways.MessagePublisherGateway;
 import com.microservice.archchatmessagingservice.application.gateways.MessageRepositoryGateway;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.DeleteMessageInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendAudioInput;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendMessageInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.DeleteMessageInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.EditMessageInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.SendAudioInput;
+import com.microservice.archchatmessagingservice.application.usecases.dto.SendMessageInput;
 import com.microservice.archchatmessagingservice.domain.Attachment;
 import com.microservice.archchatmessagingservice.domain.Chat;
 import com.microservice.archchatmessagingservice.domain.LastMessage;
@@ -154,6 +155,28 @@ public class MessageUseCase {
         return savedMessage;
     }
 
+    public Message editMessage(EditMessageInput input){
+
+        Message message = messageRepository.findById(input.messageId())
+                .orElseThrow(() -> new MessageNotFoundException("Mensagem não foi encontrada"));
+
+        if(!message.getSenderId().equals(input.senderId())){
+            throw new UnauthorizedActionException("Usuário não tem permissão para editar esta mensagem");
+        }
+
+        if(message.getStatus() == MessageStatus.DELETED){
+            throw new InvalidMessageStateException("Esta mensagem já foi apagada");
+        }
+
+        message.setContent(input.content());
+        message.setEdited(true);
+
+        Message savedMessage = messageRepository.save(message);
+        publisherGateway.publishMessage(savedMessage);
+
+        return savedMessage;
+    }
+
     public void deleteMessage(DeleteMessageInput input){
 
         Message message = messageRepository.findById(input.messageId())
@@ -164,7 +187,7 @@ public class MessageUseCase {
         }
 
         if(!message.getSenderId().equals(input.userId())){
-            throw new UnauthorizedActionException("Usuário não tem permissão para apagar esta mensagme");
+            throw new UnauthorizedActionException("Usuário não tem permissão para apagar esta mensagem");
         }
 
         if(message.getAttachment() != null){

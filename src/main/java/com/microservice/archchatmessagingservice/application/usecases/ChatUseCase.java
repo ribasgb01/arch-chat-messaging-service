@@ -7,15 +7,11 @@ import com.microservice.archchatmessagingservice.application.gateways.ChatReposi
 import com.microservice.archchatmessagingservice.application.gateways.FileStorageGateway;
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
 import com.microservice.archchatmessagingservice.application.gateways.MessageRepositoryGateway;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.SendMessageInput;
 import com.microservice.archchatmessagingservice.domain.Chat;
 import com.microservice.archchatmessagingservice.domain.Friendship;
-import com.microservice.archchatmessagingservice.domain.LastMessage;
 import com.microservice.archchatmessagingservice.domain.Message;
 import com.microservice.archchatmessagingservice.domain.enums.ChatType;
 import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
-import com.microservice.archchatmessagingservice.domain.enums.MessageStatus;
-import com.microservice.archchatmessagingservice.domain.enums.MessageType;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;

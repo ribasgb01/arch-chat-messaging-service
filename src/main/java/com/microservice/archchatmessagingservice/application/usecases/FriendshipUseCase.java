@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.microservice.archchatmessagingservice.application.exceptions.*;
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.*;
+import com.microservice.archchatmessagingservice.application.usecases.dto.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;
 import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
 

@@ -1,4 +1,9 @@
 package com.microservice.archchatmessagingservice.application.usecases.dto;
 
-public class EditMessageInput {
-}
+import java.util.UUID;
+
+public record EditMessageInput (
+        UUID senderId,
+        UUID messageId,
+        String content
+){}

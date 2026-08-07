@@ -1,7 +1,7 @@
 package com.microservice.archchatmessagingservice.controller;
 
 import com.microservice.archchatmessagingservice.application.usecases.FriendshipUseCase;
-import com.microservice.archchatmessagingservice.application.usecases.dto.request.*;
+import com.microservice.archchatmessagingservice.application.usecases.dto.*;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.FriendshipResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;

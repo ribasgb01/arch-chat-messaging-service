@@ -1,6 +1,5 @@
-package com.microservice.archchatmessagingservice.application.usecases.dto.request;
+package com.microservice.archchatmessagingservice.application.usecases.dto;
 
-import com.microservice.archchatmessagingservice.domain.Attachment;
 import com.microservice.archchatmessagingservice.domain.enums.MessageType;
 
 import java.io.InputStream;
