@@ -6,10 +6,12 @@ import com.microservice.archchatmessagingservice.application.usecases.dto.EditMe
 import com.microservice.archchatmessagingservice.application.usecases.dto.SendMessageInput;
 import com.microservice.archchatmessagingservice.controller.dto.request.EditMessageRequest;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendMessageRequest;
+import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;
@@ -23,12 +25,13 @@ public class MessageWebSocketController {
     @MessageMapping("/chat/{chatId}/sendMessage")
     public void sendMessage(
             @DestinationVariable UUID chatId,
-            @Payload SendMessageRequest request
+            @Payload SendMessageRequest request,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser
             ){
 
         SendMessageInput input = new SendMessageInput(
                 chatId,
-                request.senderId(),
+                loggedInUser.id(),
                 request.content(),
                 request.type(),
                 null, null, null, null
@@ -40,12 +43,12 @@ public class MessageWebSocketController {
     @MessageMapping("/chat/{chatId}/deleteMessage")
     public void deleteMessage(
             @DestinationVariable UUID chatId,
-            @Payload UUID userId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser,
             @Payload UUID messageId
         ){
         DeleteMessageInput input = new DeleteMessageInput(
                 messageId,
-                userId
+                loggedInUser.id()
         );
 
         messageUseCase.deleteMessage(input);
@@ -54,10 +57,11 @@ public class MessageWebSocketController {
     @MessageMapping("/chat/{chatId}/editMessage")
     public void editMessage(
             @DestinationVariable UUID chatId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser,
             @Payload EditMessageRequest request
         ){
         EditMessageInput input = new EditMessageInput(
-                request.senderId(),
+                loggedInUser.id(),
                 request.messageId(),
                 request.content()
         );

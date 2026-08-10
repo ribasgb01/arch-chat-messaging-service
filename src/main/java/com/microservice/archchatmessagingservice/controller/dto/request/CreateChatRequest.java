@@ -6,7 +6,5 @@ import java.util.UUID;
 
 public record CreateChatRequest (
         @NotNull
-        UUID user1,
-        @NotNull
         UUID user2
 ) {}

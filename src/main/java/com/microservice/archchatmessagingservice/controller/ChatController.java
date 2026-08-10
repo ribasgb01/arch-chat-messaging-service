@@ -4,9 +4,11 @@ import com.microservice.archchatmessagingservice.application.usecases.ChatUseCas
 import com.microservice.archchatmessagingservice.controller.dto.receiver.ChatResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.CreateChatRequest;
 import com.microservice.archchatmessagingservice.domain.Chat;
+import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -22,9 +24,9 @@ public class ChatController {
     private final ChatUseCase chatUseCase;
 
     @PostMapping("/create")
-    public ResponseEntity<ChatResponse> createChatRoom(@RequestBody @Valid CreateChatRequest request){
+    public ResponseEntity<ChatResponse> createChatRoom(@RequestBody @Valid CreateChatRequest request, @AuthenticationPrincipal UserAuthenticated loggedInUser){
 
-        Chat createdChat =  chatUseCase.createChat(request.user1(), request.user2());
+        Chat createdChat =  chatUseCase.createChat(loggedInUser.id(), request.user2());
 
         ChatResponse response = new ChatResponse(
                 createdChat.getId(),
@@ -38,9 +40,9 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ChatResponse>> getChats(@RequestParam UUID userId){
+    public ResponseEntity<List<ChatResponse>> getChats(@AuthenticationPrincipal UserAuthenticated loggedInUser){
 
-        List<Chat> chatList = chatUseCase.getChatsByUserId(userId);
+        List<Chat> chatList = chatUseCase.getChatsByUserId(loggedInUser.id());
 
         List<ChatResponse> response = chatList.stream()
                 .map(domain -> new ChatResponse(
@@ -55,9 +57,9 @@ public class ChatController {
     }
 
     @DeleteMapping("/{chatId}")
-    public ResponseEntity<Void> deleteChat(@PathVariable UUID chatId, @RequestParam UUID userId){
+    public ResponseEntity<Void> deleteChat(@PathVariable UUID chatId, @AuthenticationPrincipal UserAuthenticated loggedInUser){
 
-        chatUseCase.deleteChat(userId, chatId);
+        chatUseCase.deleteChat(loggedInUser.id(), chatId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

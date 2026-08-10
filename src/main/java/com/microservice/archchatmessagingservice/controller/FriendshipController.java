@@ -5,10 +5,12 @@ import com.microservice.archchatmessagingservice.application.usecases.dto.*;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.FriendshipResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;
+import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,10 +24,12 @@ public class FriendshipController {
     private final FriendshipUseCase friendshipUsecase;
 
     @PostMapping("/request")
-    public ResponseEntity<FriendshipResponse> sendFriendRequest(@Valid @RequestBody FriendshipRequest request){
+    public ResponseEntity<FriendshipResponse> sendFriendRequest(
+            @Valid @RequestBody FriendshipRequest request,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser){
 
         SendFriendRequestInput input = new SendFriendRequestInput(
-            request.requesterId(),
+            loggedInUser.id(),
             request.receiverId()
         );
 
@@ -43,11 +47,12 @@ public class FriendshipController {
     }
 
     @PatchMapping("/{friendshipId}/accept")
-    public ResponseEntity<FriendshipResponse> acceptRequest(@RequestBody @Valid AcceptFriendRequestDto request, @PathVariable UUID friendshipId){
+    public ResponseEntity<FriendshipResponse> acceptRequest(@AuthenticationPrincipal UserAuthenticated loggedInUser, @PathVariable UUID friendshipId){
 
         AcceptFriendRequestInput input = new AcceptFriendRequestInput(
                 friendshipId,
-                request.receiverId()
+                loggedInUser.id()
+
         );
 
         Friendship domain = friendshipUsecase.acceptRequest(input);
@@ -64,11 +69,11 @@ public class FriendshipController {
     }
 
     @PatchMapping("/{friendshipId}/decline")
-    public ResponseEntity<FriendshipResponse> declineRequest(@RequestBody @Valid DeclineFriendRequestDto request, @PathVariable UUID friendshipId){
+    public ResponseEntity<FriendshipResponse> declineRequest(@AuthenticationPrincipal UserAuthenticated loggedInUser, @PathVariable UUID friendshipId){
 
         DeclineFriendRequestInput input = new DeclineFriendRequestInput(
                 friendshipId,
-                request.receiverId()
+                loggedInUser.id()
         );
 
         Friendship domain = friendshipUsecase.declineRequest(input);
@@ -85,10 +90,10 @@ public class FriendshipController {
     }
 
     @PostMapping("/block")
-    public ResponseEntity<FriendshipResponse> blockUser(@Valid @RequestBody BlockUserRequest request) {
+    public ResponseEntity<FriendshipResponse> blockUser(@Valid @RequestBody BlockUserRequest request, @AuthenticationPrincipal UserAuthenticated loggedInUser) {
 
         BlockUserInput input = new BlockUserInput(
-                request.blockerId(),
+                loggedInUser.id(),
                 request.blockedId()
         );
 
@@ -106,10 +111,10 @@ public class FriendshipController {
     }
 
     @PostMapping("/unblock")
-    public ResponseEntity<FriendshipResponse> unblockUser(@RequestBody @Valid UnblockUserRequest request){
+    public ResponseEntity<FriendshipResponse> unblockUser(@RequestBody @Valid UnblockUserRequest request,@AuthenticationPrincipal UserAuthenticated loggedInUser){
 
         UnblockUserInput input = new UnblockUserInput(
-                request.unblockerId(),
+                loggedInUser.id(),
                 request.blockedId()
         );
 
@@ -128,8 +133,8 @@ public class FriendshipController {
 
 
     @GetMapping
-    public ResponseEntity<List<UUID>> getAcceptedFriendships(@RequestParam UUID userId) {
-        List<UUID> friends = friendshipUsecase.getAcceptedFriendships(userId);
+    public ResponseEntity<List<UUID>> getAcceptedFriendships(@AuthenticationPrincipal UserAuthenticated loggedInUser) {
+        List<UUID> friends = friendshipUsecase.getAcceptedFriendships(loggedInUser.id());
         return ResponseEntity.ok(friends);
     }
 

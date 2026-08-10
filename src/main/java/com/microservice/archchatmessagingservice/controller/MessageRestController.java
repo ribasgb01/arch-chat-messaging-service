@@ -8,10 +8,12 @@ import com.microservice.archchatmessagingservice.controller.dto.receiver.Message
 import com.microservice.archchatmessagingservice.controller.dto.request.SendAudioRequest;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendMessageRequest;
 import com.microservice.archchatmessagingservice.domain.Message;
+import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +32,7 @@ public class MessageRestController {
     @PostMapping
     public ResponseEntity<MessageResponse> sendMessage(
             @PathVariable UUID chatId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser,
             @Valid @RequestPart("message") SendMessageRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
@@ -48,7 +51,7 @@ public class MessageRestController {
 
         SendMessageInput input = new SendMessageInput(
                 chatId,
-                request.senderId(),
+                loggedInUser.id(),
                 request.content(),
                 request.type(),
                 fileStream,
@@ -77,6 +80,7 @@ public class MessageRestController {
     @PostMapping("/audio")
     public ResponseEntity<MessageResponse> sendAudio(
             @PathVariable UUID chatId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser,
             @RequestPart("audio") @Valid SendAudioRequest request,
             @RequestPart("file") MultipartFile file
             ) throws IOException {
@@ -88,7 +92,7 @@ public class MessageRestController {
 
         SendAudioInput input = new SendAudioInput(
                 chatId,
-                request.senderId(),
+                loggedInUser.id(),
                 inputStream,
                 fileSize,
                 fileName,
@@ -117,9 +121,9 @@ public class MessageRestController {
     public ResponseEntity<Void> deleteMessage(
             @PathVariable UUID chatId,
             @PathVariable UUID messageId,
-            @RequestParam UUID userId
+            @AuthenticationPrincipal UserAuthenticated loggedInUser
     ) {
-        DeleteMessageInput input = new DeleteMessageInput(messageId, userId);
+        DeleteMessageInput input = new DeleteMessageInput(messageId, loggedInUser.id());
 
         messageUseCase.deleteMessage(input);
 
@@ -127,9 +131,9 @@ public class MessageRestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MessageResponse>> getChatHistory(@PathVariable UUID chatId, @RequestParam UUID userId){
+    public ResponseEntity<List<MessageResponse>> getChatHistory(@PathVariable UUID chatId, @AuthenticationPrincipal UserAuthenticated loggedInUser){
 
-        List<MessageResponse> response = messageUseCase.getChatHistory(chatId, userId).stream()
+        List<MessageResponse> response = messageUseCase.getChatHistory(chatId, loggedInUser.id()).stream()
                 .map(messageDomain -> new MessageResponse(
                         messageDomain.getId(),
                         messageDomain.getChatId(),

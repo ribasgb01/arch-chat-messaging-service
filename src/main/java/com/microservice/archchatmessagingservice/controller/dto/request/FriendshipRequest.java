@@ -7,8 +7,5 @@ import java.util.UUID;
 public record FriendshipRequest(
 
         @NotNull(message = "Campo não informado")
-        UUID requesterId,
-
-        @NotNull(message = "Campo não informado")
         UUID receiverId
 ) {}

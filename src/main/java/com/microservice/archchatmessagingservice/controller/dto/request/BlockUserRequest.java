@@ -6,7 +6,5 @@ import java.util.UUID;
 
 public record BlockUserRequest(
         @NotNull(message = "Campo não informado")
-        UUID blockerId,
-        @NotNull(message = "Campo não informado")
         UUID blockedId
 ) {}
