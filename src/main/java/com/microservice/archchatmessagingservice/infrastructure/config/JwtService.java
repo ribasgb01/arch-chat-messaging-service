@@ -1,5 +1,6 @@
 package com.microservice.archchatmessagingservice.infrastructure.config;
 
+import com.microservice.archchatmessagingservice.application.gateways.CacheGateway;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,12 @@ public class JwtService {
 
     public UUID extractUserId(String token){
 
-        String userId = extractClaim(token, claims -> claims.get("userId", String.class));
+        String userId = extractClaim(token, Claims::getSubject);
         return userId != null ? UUID.fromString(userId) : null;
     }
 
     public String extractEmail(String token){
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token, claims -> claims.get("email", String.class));
     }
 
     public String extractRole(String token){
