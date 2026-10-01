@@ -2,10 +2,10 @@ package com.microservice.archchatmessagingservice.infrastructure.gateways;
 
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
 import com.microservice.archchatmessagingservice.domain.Friendship;
+import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
 import com.microservice.archchatmessagingservice.infrastructure.persistence.DataFriendshipRepository;
 import com.microservice.archchatmessagingservice.infrastructure.persistence.entities.FriendshipEntity;
 import com.microservice.archchatmessagingservice.infrastructure.persistence.mappers.FriendshipMapper;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +44,13 @@ public class FriendshipRepositoryGatewayImpl implements FriendshipRepositoryGate
         return repository.findAcceptedFriendshipsByUserId(userId)
                 .stream()
                 .map(entity -> mapper.toDomain(entity))
+                .toList();
+    }
+
+    @Override
+    public List<Friendship> findPendingRequests(UUID receiverId) {
+        return repository.findByReceiverIdAndStatus(receiverId, FriendshipStatus.PENDING).stream()
+                .map(mapper::toDomain)
                 .toList();
     }
 }

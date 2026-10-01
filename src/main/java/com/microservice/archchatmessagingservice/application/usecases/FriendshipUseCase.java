@@ -7,16 +7,19 @@ import java.util.UUID;
 
 import com.microservice.archchatmessagingservice.application.exceptions.*;
 import com.microservice.archchatmessagingservice.application.gateways.FriendshipRepositoryGateway;
+import com.microservice.archchatmessagingservice.application.gateways.MessagePublisherGateway;
 import com.microservice.archchatmessagingservice.application.usecases.dto.*;
 import com.microservice.archchatmessagingservice.domain.Friendship;
 import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
 
+import com.microservice.archchatmessagingservice.infrastructure.messaging.dto.NotificationEventDto;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class FriendshipUseCase {
 
     private final FriendshipRepositoryGateway friendshipRepositoryGateway;
+    private final MessagePublisherGateway messagePublisherGateway;
 
     public Friendship sendFriendRequest(SendFriendRequestInput input) {
         UUID requester = input.requesterId();
@@ -79,7 +82,18 @@ public class FriendshipUseCase {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return friendshipRepositoryGateway.save(newRequest);
+        Friendship saved = friendshipRepositoryGateway.save(newRequest);
+
+        messagePublisherGateway.publishNotification(new NotificationEventDto(
+                requester,
+                receiver,
+                null,
+                "FRIEND_REQUEST",
+                "Você recebeu uma nova solicitação de amizade!",
+                LocalDateTime.now()
+        ));
+
+        return saved;
     }
 
     public Friendship declineRequest(DeclineFriendRequestInput input){
@@ -182,6 +196,10 @@ public class FriendshipUseCase {
         return friendships.stream()
                 .map(f -> f.getRequesterId().equals(userId) ? f.getReceiverId() : f.getRequesterId())
                 .toList();
+    }
+
+    public List<Friendship> getPendingRequests(UUID userId) {
+        return friendshipRepositoryGateway.findPendingRequests(userId);
     }
 
 }

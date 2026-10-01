@@ -22,6 +22,7 @@ public class ChatDocument {
 
     @Id
     private UUID id;
+    private String name;
     private LocalDateTime createdAt;
     private List<UUID> participantIds;
     private ChatType type;

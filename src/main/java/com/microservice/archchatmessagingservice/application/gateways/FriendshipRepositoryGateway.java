@@ -15,5 +15,5 @@ public interface FriendshipRepositoryGateway {
 
     List<Friendship> findAcceptedFriendshipsByUserId(UUID userId);
 
-
+    List<Friendship> findPendingRequests(UUID receiverId);
 }

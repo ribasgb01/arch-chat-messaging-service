@@ -1,5 +1,6 @@
 package com.microservice.archchatmessagingservice.infrastructure.persistence;
 
+import com.microservice.archchatmessagingservice.domain.enums.FriendshipStatus;
 import com.microservice.archchatmessagingservice.infrastructure.persistence.entities.FriendshipEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,6 @@ public interface DataFriendshipRepository extends JpaRepository<FriendshipEntity
             "f.status = 'ACCEPTED' AND " +
             "(f.requesterId = :userId OR f.receiverId = :userId)")
     List<FriendshipEntity> findAcceptedFriendshipsByUserId(@Param("userId") UUID userId);
+
+    List<FriendshipEntity> findByReceiverIdAndStatus(UUID receiverId, FriendshipStatus status);
 }

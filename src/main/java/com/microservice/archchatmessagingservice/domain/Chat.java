@@ -16,6 +16,7 @@ import java.util.UUID;
 @Builder
 public class Chat{
     private UUID id;
+    private String name;
     private LocalDateTime createdAt;
     private List<UUID> participantIds;
     private ChatType type;

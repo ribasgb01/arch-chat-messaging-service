@@ -41,6 +41,7 @@ public class ChatUseCase {
         }
         Chat newChat = new Chat(
                 UUID.randomUUID(),
+                null,
                 LocalDateTime.now(),
                 List.of(user1, user2),
                 ChatType.DIRECT,
@@ -48,6 +49,28 @@ public class ChatUseCase {
         );
 
         return chatRepository.save(newChat);
+    }
+
+    public Chat createGroupChat(String name, List<UUID> memberIds, UUID creatorId) {
+        List<UUID> allParticipants = new java.util.ArrayList<>(memberIds);
+        if (!allParticipants.contains(creatorId)) {
+            allParticipants.add(creatorId);
+        }
+
+        if (allParticipants.size() < 2) {
+            throw new IllegalArgumentException("Um grupo deve ter pelo menos 2 participantes.");
+        }
+
+        Chat groupChat = new Chat(
+                UUID.randomUUID(),
+                name,
+                LocalDateTime.now(),
+                allParticipants,
+                ChatType.GROUP,
+                null
+        );
+
+        return chatRepository.save(groupChat);
     }
 
     public List<Chat> getChatsByUserId(UUID userId){
@@ -78,7 +101,7 @@ public class ChatUseCase {
             throw new UnauthorizedActionException("Somente os usuários que pertencem ao chat podem deletar");
         }
 
-        List<Message> messages = messageRepository.findMessagesByChatId(chatId);
+        List<Message> messages = messageRepository.findAllMessagesByChatId(chatId);
 
         for (Message msg : messages) {
             if (msg.getAttachment() != null) {

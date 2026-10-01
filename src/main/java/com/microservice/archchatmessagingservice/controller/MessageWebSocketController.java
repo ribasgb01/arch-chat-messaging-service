@@ -1,5 +1,6 @@
 package com.microservice.archchatmessagingservice.controller;
 
+import com.microservice.archchatmessagingservice.application.exceptions.UnauthorizedActionException;
 import com.microservice.archchatmessagingservice.application.usecases.MessageUseCase;
 import com.microservice.archchatmessagingservice.application.usecases.dto.DeleteMessageInput;
 import com.microservice.archchatmessagingservice.application.usecases.dto.EditMessageInput;
@@ -11,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @Controller
@@ -26,9 +29,10 @@ public class MessageWebSocketController {
     public void sendMessage(
             @DestinationVariable UUID chatId,
             @Payload SendMessageRequest request,
-            @AuthenticationPrincipal UserAuthenticated loggedInUser
+            Principal principal
             ){
 
+        UserAuthenticated loggedInUser = extractUser(principal);
         SendMessageInput input = new SendMessageInput(
                 chatId,
                 loggedInUser.id(),
@@ -43,9 +47,11 @@ public class MessageWebSocketController {
     @MessageMapping("/chat/{chatId}/deleteMessage")
     public void deleteMessage(
             @DestinationVariable UUID chatId,
-            @AuthenticationPrincipal UserAuthenticated loggedInUser,
-            @Payload UUID messageId
+            @Payload UUID messageId,
+            Principal principal
         ){
+
+        UserAuthenticated loggedInUser = extractUser(principal);
         DeleteMessageInput input = new DeleteMessageInput(
                 messageId,
                 loggedInUser.id()
@@ -57,9 +63,11 @@ public class MessageWebSocketController {
     @MessageMapping("/chat/{chatId}/editMessage")
     public void editMessage(
             @DestinationVariable UUID chatId,
-            @AuthenticationPrincipal UserAuthenticated loggedInUser,
-            @Payload EditMessageRequest request
+            @Payload EditMessageRequest request,
+            Principal principal
         ){
+
+        UserAuthenticated loggedInUser = extractUser(principal);
         EditMessageInput input = new EditMessageInput(
                 loggedInUser.id(),
                 request.messageId(),
@@ -67,6 +75,14 @@ public class MessageWebSocketController {
         );
 
         messageUseCase.editMessage(input);
+    }
 
+    private UserAuthenticated extractUser(Principal principal) {
+        if (principal instanceof UsernamePasswordAuthenticationToken auth) {
+            if (auth.getPrincipal() instanceof UserAuthenticated user) {
+                return user;
+            }
+        }
+        throw new UnauthorizedActionException("Usuário não autenticado no WebSocket");
     }
 }

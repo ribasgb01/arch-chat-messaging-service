@@ -6,6 +6,8 @@ import com.microservice.archchatmessagingservice.infrastructure.persistence.Data
 import com.microservice.archchatmessagingservice.infrastructure.persistence.entities.MessageDocument;
 import com.microservice.archchatmessagingservice.infrastructure.persistence.mappers.MessageMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,14 +26,19 @@ public class MessageRepositoryGatewayImpl implements MessageRepositoryGateway {
         return mapper.toDomain(
                 messageRepository.save(mapper.toDocument(message))
         );
-
     }
 
     @Override
-    public List<Message> findMessagesByChatId(UUID chatId) {
-        return messageRepository.findAllByChatIdOrderByTimestampAsc(chatId)
+    public Page<Message> findMessagesByChatId(UUID chatId, Pageable pageable) {
+        return messageRepository.findByChatIdOrderByTimestampDesc(chatId, pageable)
+                .map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Message> findAllMessagesByChatId(UUID chatId) {
+        return messageRepository.findAllByChatId(chatId)
                 .stream()
-                .map(document -> mapper.toDomain(document))
+                .map(mapper::toDomain)
                 .toList();
     }
 

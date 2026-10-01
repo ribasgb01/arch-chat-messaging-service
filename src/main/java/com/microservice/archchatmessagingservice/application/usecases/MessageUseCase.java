@@ -16,9 +16,14 @@ import com.microservice.archchatmessagingservice.domain.Attachment;
 import com.microservice.archchatmessagingservice.domain.Chat;
 import com.microservice.archchatmessagingservice.domain.LastMessage;
 import com.microservice.archchatmessagingservice.domain.Message;
+import com.microservice.archchatmessagingservice.domain.enums.ChatType;
 import com.microservice.archchatmessagingservice.domain.enums.MessageStatus;
 import com.microservice.archchatmessagingservice.domain.enums.MessageType;
+import com.microservice.archchatmessagingservice.infrastructure.messaging.dto.NotificationEventDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,7 +60,7 @@ public class MessageUseCase {
 
             String tempUrl = fileStorage.getPresignedUrl(attachment.getKey());
 
-             updatedAttachment = new Attachment(
+            updatedAttachment = new Attachment(
                     attachment.getId(),
                     attachment.getFileName(),
                     attachment.getContentType(),
@@ -79,6 +84,24 @@ public class MessageUseCase {
                 .build();
 
         Message savedMessage = messageRepository.save(message);
+
+        List<UUID> recipients = chat.getParticipantIds().stream()
+                .filter(id -> !id.equals(input.senderId()))
+                .toList();
+
+        for (UUID recipientId : recipients) {
+            publisherGateway.publishNotification(new NotificationEventDto(
+                    savedMessage.getSenderId(),
+                    recipientId,
+                    savedMessage.getChatId(),
+                    "CHAT_MESSAGE",
+                    chat.getType() == ChatType.GROUP
+                            ? "Nova mensagem no grupo " + chat.getName()
+                            : "Nova mensagem recebida no chat!",
+                    LocalDateTime.now()
+            ));
+        }
+
         publisherGateway.publishMessage(savedMessage);
 
         LastMessage lastMessage = LastMessage.builder()
@@ -182,71 +205,52 @@ public class MessageUseCase {
         Message message = messageRepository.findById(input.messageId())
                 .orElseThrow(() -> new MessageNotFoundException("Mensagem não foi encontrada"));
 
-        if(message.getStatus() == MessageStatus.DELETED){
-            throw new InvalidMessageStateException("Esta mensagem já foi apagada");
-        }
-
         if(!message.getSenderId().equals(input.userId())){
-            throw new UnauthorizedActionException("Usuário não tem permissão para apagar esta mensagem");
+            throw new UnauthorizedActionException("Usuário não tem permissão para deletar esta mensagem");
         }
 
         if(message.getAttachment() != null){
             fileStorage.deleteFile(message.getAttachment().getKey());
+            message.setAttachment(null);
         }
 
-        message.setStatus(MessageStatus.DELETED);
-        message.setContent("");
-        message.setAttachment(null);
+        message.setContent("🚫 Esta mensagem foi apagada");
+        message.setEdited(true);
 
-        messageRepository.save(message);
+        Message updatedMessage = messageRepository.save(message);
 
-        chatRepository.findById(message.getChatId()).ifPresent(chat -> {
-            if (chat.getLastMessage() != null && chat.getLastMessage().getMessageId().equals(message.getId())) {
-
-                LastMessage updatedLastMessage = new LastMessage(
-                        message.getId(),
-                        message.getSenderId(),
-                        "",
-                        message.getTimestamp(),
-                        MessageStatus.DELETED
-                );
-
-                chat.setLastMessage(updatedLastMessage);
-                chatRepository.save(chat);
-            }
-        });
+        publisherGateway.publishMessage(updatedMessage);
     }
 
-    public List<Message> getChatHistory(UUID chatId, UUID userId){
+    public Page<Message> getChatHistory(UUID chatId, UUID userId, int page, int size){
 
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ChatNotFoundException("Sala de chat não encontrada"));
 
-        if(!chat.getParticipantIds().contains(userId)){
-            throw new UnauthorizedActionException("Usuário não tem permissão para visualizar o histórico de conversa");
+        if (!chat.getParticipantIds().contains(userId)) {
+            throw new UnauthorizedActionException("Usuário não tem permissão para visualizar o histórico");
         }
 
-        return messageRepository.findMessagesByChatId(chatId).stream()
-                .map(message -> {
-                    if (message.getAttachment() != null){
+        Pageable pageable = PageRequest.of(page, size);
 
-                        Attachment attachment = message.getAttachment();
-                        String tempUrl = fileStorage.getPresignedUrl(attachment.getKey());
+        return messageRepository.findMessagesByChatId(chatId, pageable);
+    }
 
-                        Attachment updatedAttachment = new Attachment(
-                                attachment.getId(),
-                                attachment.getFileName(),
-                                attachment.getContentType(),
-                                attachment.getSize(),
-                                attachment.getKey(),
-                                tempUrl,
-                                attachment.getDuration()
-                        );
+    public String getAttachmentUrl(UUID messageId, UUID userId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException("Mensagem não encontrada"));
 
-                        message.setAttachment(updatedAttachment);
-                    }
-                    return message;
-        }).toList();
+        Chat chat = chatRepository.findById(message.getChatId())
+                .orElseThrow(() -> new ChatNotFoundException("Chat não encontrado"));
 
+        if (!chat.getParticipantIds().contains(userId)) {
+            throw new UnauthorizedActionException("Sem permissão para ver este anexo");
+        }
+
+        if (message.getAttachment() == null || message.getAttachment().getKey() == null) {
+            throw new IllegalArgumentException("Esta mensagem não possui anexo");
+        }
+
+        return fileStorage.getPresignedUrl(message.getAttachment().getKey());
     }
 }

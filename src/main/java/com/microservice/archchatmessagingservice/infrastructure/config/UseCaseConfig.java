@@ -22,8 +22,10 @@ public class UseCaseConfig {
         }
 
     @Bean
-    public FriendshipUseCase sendFriendRequestUseCase(FriendshipRepositoryGateway friendshipRepositoryGateway){
-        return new FriendshipUseCase(friendshipRepositoryGateway);
+    public FriendshipUseCase sendFriendRequestUseCase(
+            FriendshipRepositoryGateway friendshipRepositoryGateway,
+            MessagePublisherGateway messagePublisherGateway){
+        return new FriendshipUseCase(friendshipRepositoryGateway, messagePublisherGateway);
     }
 
     @Bean

@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FriendshipController {
 
-    private final FriendshipUseCase friendshipUsecase;
+    private final FriendshipUseCase friendshipUseCase;
 
     @PostMapping("/request")
     public ResponseEntity<FriendshipResponse> sendFriendRequest(
@@ -33,7 +33,7 @@ public class FriendshipController {
             request.receiverId()
         );
 
-        Friendship domain = friendshipUsecase.sendFriendRequest(input);
+        Friendship domain = friendshipUseCase.sendFriendRequest(input);
 
         FriendshipResponse response = new FriendshipResponse(
                 domain.getId(),
@@ -55,7 +55,7 @@ public class FriendshipController {
 
         );
 
-        Friendship domain = friendshipUsecase.acceptRequest(input);
+        Friendship domain = friendshipUseCase.acceptRequest(input);
 
         FriendshipResponse response = new FriendshipResponse(
                 domain.getId(),
@@ -76,7 +76,7 @@ public class FriendshipController {
                 loggedInUser.id()
         );
 
-        Friendship domain = friendshipUsecase.declineRequest(input);
+        Friendship domain = friendshipUseCase.declineRequest(input);
 
         FriendshipResponse response = new FriendshipResponse(
                 domain.getId(),
@@ -97,7 +97,7 @@ public class FriendshipController {
                 request.blockedId()
         );
 
-        Friendship domain = friendshipUsecase.blockUser(input);
+        Friendship domain = friendshipUseCase.blockUser(input);
 
         FriendshipResponse response = new FriendshipResponse(
                 domain.getId(),
@@ -118,7 +118,7 @@ public class FriendshipController {
                 request.blockedId()
         );
 
-        Friendship domain = friendshipUsecase.unblockUser(input);
+        Friendship domain = friendshipUseCase.unblockUser(input);
 
         FriendshipResponse response = new FriendshipResponse(
                 domain.getId(),
@@ -134,8 +134,19 @@ public class FriendshipController {
 
     @GetMapping
     public ResponseEntity<List<UUID>> getAcceptedFriendships(@AuthenticationPrincipal UserAuthenticated loggedInUser) {
-        List<UUID> friends = friendshipUsecase.getAcceptedFriendships(loggedInUser.id());
+        List<UUID> friends = friendshipUseCase.getAcceptedFriendships(loggedInUser.id());
         return ResponseEntity.ok(friends);
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<FriendshipResponse>> getPendingRequests(
+            @AuthenticationPrincipal UserAuthenticated loggedInUser
+    ) {
+        List<FriendshipResponse> pending = friendshipUseCase.getPendingRequests(loggedInUser.id()).stream()
+                .map(f -> new FriendshipResponse(f.getId(), f.getRequesterId(), f.getReceiverId(), f.getStatus(), f.getCreatedAt()))
+                .toList();
+
+        return ResponseEntity.ok(pending);
     }
 
 }

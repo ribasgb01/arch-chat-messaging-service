@@ -4,6 +4,7 @@ import com.microservice.archchatmessagingservice.application.usecases.MessageUse
 import com.microservice.archchatmessagingservice.application.usecases.dto.DeleteMessageInput;
 import com.microservice.archchatmessagingservice.application.usecases.dto.SendAudioInput;
 import com.microservice.archchatmessagingservice.application.usecases.dto.SendMessageInput;
+import com.microservice.archchatmessagingservice.controller.dto.receiver.MessagePaginatedResponse;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.MessageResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendAudioRequest;
 import com.microservice.archchatmessagingservice.controller.dto.request.SendMessageRequest;
@@ -11,6 +12,7 @@ import com.microservice.archchatmessagingservice.domain.Message;
 import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -117,23 +120,17 @@ public class MessageRestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @DeleteMapping("/{messageId}")
-    public ResponseEntity<Void> deleteMessage(
-            @PathVariable UUID chatId,
-            @PathVariable UUID messageId,
-            @AuthenticationPrincipal UserAuthenticated loggedInUser
-    ) {
-        DeleteMessageInput input = new DeleteMessageInput(messageId, loggedInUser.id());
-
-        messageUseCase.deleteMessage(input);
-
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping
-    public ResponseEntity<List<MessageResponse>> getChatHistory(@PathVariable UUID chatId, @AuthenticationPrincipal UserAuthenticated loggedInUser){
+    public ResponseEntity<MessagePaginatedResponse> getChatHistory(
+            @PathVariable UUID chatId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
 
-        List<MessageResponse> response = messageUseCase.getChatHistory(chatId, loggedInUser.id()).stream()
+        Page<Message> messagePage = messageUseCase.getChatHistory(chatId, loggedInUser.id(), page, size);
+
+        List<MessageResponse> content = messagePage.getContent().stream()
                 .map(messageDomain -> new MessageResponse(
                         messageDomain.getId(),
                         messageDomain.getChatId(),
@@ -146,6 +143,23 @@ public class MessageRestController {
                         messageDomain.getType()
                 )).toList();
 
+        MessagePaginatedResponse response = new MessagePaginatedResponse(
+                content,
+                messagePage.getNumber(),
+                messagePage.getTotalPages(),
+                messagePage.getTotalElements()
+        );
+
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{messageId}/attachment-url")
+    public ResponseEntity<Map<String, String>> getAttachmentUrl(
+            @PathVariable UUID chatId,
+            @PathVariable UUID messageId,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser
+    ) {
+        String url = messageUseCase.getAttachmentUrl(messageId, loggedInUser.id());
+        return ResponseEntity.ok(Map.of("url", url));
     }
 }

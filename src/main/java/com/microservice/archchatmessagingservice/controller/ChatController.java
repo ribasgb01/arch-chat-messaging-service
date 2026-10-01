@@ -3,6 +3,7 @@ package com.microservice.archchatmessagingservice.controller;
 import com.microservice.archchatmessagingservice.application.usecases.ChatUseCase;
 import com.microservice.archchatmessagingservice.controller.dto.receiver.ChatResponse;
 import com.microservice.archchatmessagingservice.controller.dto.request.CreateChatRequest;
+import com.microservice.archchatmessagingservice.controller.dto.request.CreateGroupChatRequest;
 import com.microservice.archchatmessagingservice.domain.Chat;
 import com.microservice.archchatmessagingservice.infrastructure.config.UserAuthenticated;
 import jakarta.validation.Valid;
@@ -30,6 +31,7 @@ public class ChatController {
 
         ChatResponse response = new ChatResponse(
                 createdChat.getId(),
+                createdChat.getName(),
                 createdChat.getCreatedAt(),
                 createdChat.getParticipantIds(),
                 createdChat.getType(),
@@ -37,6 +39,25 @@ public class ChatController {
         );
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/group")
+    public ResponseEntity<ChatResponse> createGroupChat(
+            @RequestBody @Valid CreateGroupChatRequest request,
+            @AuthenticationPrincipal UserAuthenticated loggedInUser
+    ) {
+        Chat createdGroup = chatUseCase.createGroupChat(request.name(), request.memberIds(), loggedInUser.id());
+
+        ChatResponse response = new ChatResponse(
+                createdGroup.getId(),
+                createdGroup.getName(),
+                createdGroup.getCreatedAt(),
+                createdGroup.getParticipantIds(),
+                createdGroup.getType(),
+                createdGroup.getLastMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
@@ -47,6 +68,7 @@ public class ChatController {
         List<ChatResponse> response = chatList.stream()
                 .map(domain -> new ChatResponse(
                         domain.getId(),
+                        domain.getName(),
                         domain.getCreatedAt(),
                         domain.getParticipantIds(),
                         domain.getType(),
